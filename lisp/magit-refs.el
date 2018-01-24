@@ -494,16 +494,25 @@ line is inserted at all."
       (insert ?\n)
       (magit-make-margin-overlay nil t))))
 
+(defvar magit-show-refs-branch-filter nil)
+(defvar magit-show-refs-tag-filter nil)
+
 (defun magit-insert-branch (branch format &optional current face hash
                                    message upstream uref utrack substring)
   "For internal use, don't add to a hook."
   (unless magit-refs-show-commit-count
     (setq format (replace-regexp-in-string "%[0-9]\\([cC]\\)" "%1\\1" format t)))
   (if branch
-      (magit-insert-section it (branch branch t)
-        (magit-insert-branch-1 it branch format
-                               current face hash message
-                               upstream uref utrack substring))
+      (when (or (not magit-show-refs-branch-filter)
+                (let ((b (if  substring (substring branch substring) branch))
+                      (r (and substring (substring branch 0 (1- substring)))))
+                  (if (stringp magit-show-refs-branch-filter)
+                      (string-prefix-p magit-show-refs-branch-filter b)
+                    (funcall magit-show-refs-branch-filter b r))))
+        (magit-insert-section it (branch branch t)
+          (magit-insert-branch-1 it branch format
+                                 current face hash message
+                                 upstream uref utrack substring)))
     (magit-insert-section it (commit (magit-rev-parse "HEAD") t)
       (magit-insert-branch-1 it nil format
                              current face hash message
@@ -588,16 +597,18 @@ line is inserted at all."
                  (count   (magit-refs-format-commit-count tag head format t))
                  (mark    (and (equal tag head)
                                (propertize "#" 'face 'magit-tag))))
-            (magit-insert-section section (tag tag t)
-              (magit-insert-heading
-               (format-spec format
-                            `((?n . ,(propertize tag 'face 'magit-tag))
-                              (?c . ,(or mark count ""))
-                              (?m . ,(or message "")))))
-              (when (and (magit-buffer-margin-p)
-                         magit-refs-margin-for-tags)
-                (magit-refs-format-margin (concat tag "^{commit}")))
-              (magit-refs-insert-cherry-commits head tag section)))))
+            (when (or (not magit-show-refs-tag-filter)
+                      (funcall magit-show-refs-tag-filter tag))
+              (magit-insert-section section (tag tag t)
+                (magit-insert-heading
+                  (format-spec format
+                               `((?n . ,(propertize tag 'face 'magit-tag))
+                                 (?c . ,(or mark count ""))
+                                 (?m . ,(or message "")))))
+                (when (and (magit-buffer-margin-p)
+                           magit-refs-margin-for-tags)
+                  (magit-refs-format-margin (concat tag "^{commit}")))
+                (magit-refs-insert-cherry-commits head tag section))))))
       (insert ?\n)
       (magit-make-margin-overlay nil t))))
 
