@@ -5845,24 +5845,32 @@ argument they act on all suitable modules.
 
 - Key: o r, magit-submodule-register
 
-  Register submodules listed in ".gitmodules" into ".git/config".
+  This command registers the chosen module(s) by copying the url from
+  ".gitmodules" to "$GIT_DIR/config".  These values can then be edited
+  before running ~magit-submodule-populate~.  If you don't need to edit
+  the url, then use the latter directly.
 
 - Key: o p, magit-submodule-populate
 
-  Clone and register missing submodules and checkout appropriate
-  commits.
+  This command creates the working directory or directories of the
+  chosen module(s), checking out the recorded commit(s).
 
 - Key: o u, magit-submodule-update
 
-  Clone missing submodules and checkout appropriate commits.
+  This command updates the chosen module(s) checking out the recorded
+  commit(s).
 
 - Key: o s, magit-submodule-synchronize
 
-  Update each submodule's remote URL according to ".gitmodules".
+  This command synchronizes the url(s) of the chosen module(s),
+  copying the value(s) from ".gitmodules" to the ".git/config" of the
+  super-project as well those of the module(s).
 
 - Key: o d, magit-submodule-unpopulate
 
-  Remove the working directory of a module.
+  This command removes the working directory of the chosen module(s).
+
+The following commands do something with all modules.
 
 - Key: o l, magit-list-submodules
 
