@@ -102,13 +102,21 @@ an alist that supports the keys `:right-align' and `:pad-right'."
 (magit-define-popup magit-submodule-popup
   "Popup console for submodule commands."
   :man-page "git-submodule"
+  :switches '("Switches"
+              (?r "Recursive"    "--recursive")
+              (?f "Force"        "--force")
+              (?N "Do not fetch" "--no-fetch")
+              "Override all submodule.NAME.update"
+              (?c "Checkout tip"    "--checkout")
+              (?r "Rebase onto tip" "--rebase") ; conflict
+              (?m "Merge tip"       "--merge"))
   :actions
-  '((?a "Add            git submodule add"           magit-submodule-add)
-    (?r "Register       git submodule init"          magit-submodule-register)
-    (?p "Populate       git submodule update --init" magit-submodule-populate)
-    (?u "Update         git submodule update"        magit-submodule-update)
-    (?s "Synchronize    git submodule sync"          magit-submodule-synchronize)
-    (?d "Unpopulate     git submodule deinit"        magit-submodule-unpopulate)
+  '((?a "Add            git submodule add [--force]"      magit-submodule-add)
+    (?r "Register       git submodule init"               magit-submodule-register)
+    (?p "Populate       git submodule update --init"      magit-submodule-populate)
+    (?u "Update         git submodule update [--force]"   magit-submodule-update)
+    (?s "Synchronize    git submodule sync [--recursive]" magit-submodule-synchronize)
+    (?d "Unpopulate     git submodule deinit [--force]"   magit-submodule-unpopulate)
     nil
     (?l "List all modules"  magit-list-submodules)
     (?f "Fetch all modules" magit-fetch-modules))
