@@ -40,6 +40,7 @@
 ;; For `magit-diff-visit-file'
 (declare-function dired-jump "dired-x" (&optional other-window file-name))
 (declare-function magit-find-file-noselect "magit-files" (rev file))
+(declare-function magit-find-file-noselect-1 "magit-files" (rev file &optional revert))
 (declare-function magit-status-setup-buffer "magit-status" (directory))
 ;; For `magit-diff-while-committing'
 (declare-function magit-commit-message-buffer "magit-commit" ())
@@ -834,7 +835,8 @@ and `:slant'."
 (defclass magit-file-section (magit-section)
   ((keymap :initform magit-file-section-map)
    (source :initform nil)
-   (header :initform nil)))
+   (header :initform nil)
+   (status :initform nil)))
 
 (defclass magit-module-section (magit-file-section)
   ((keymap :initform magit-hunk-section-map)))
@@ -1089,6 +1091,7 @@ If no DWIM context is found, nil is returned."
     magit-buffer-range)
    (t
     (magit-section-case
+      ([* unsaved] 'unsaved)
       ([* unstaged] 'unstaged)
       ([* staged] 'staged)
       (unmerged 'unmerged)
@@ -1618,14 +1621,20 @@ the Magit-Status buffer for DIRECTORY."
          (rev  (if goto-from
                    (magit-diff-visit--range-from spec)
                  (magit-diff-visit--range-to spec)))
-         (buf  (if (or goto-worktree
-                       (and (not (stringp rev))
-                            (or magit-diff-visit-avoid-head-blob
-                                (not goto-from))))
-                   (or (get-file-buffer file)
-                       (find-file-noselect file))
+         (buf  (cond
+                ((and (eq rev 'unsaved)
+                      goto-from
+                      (not goto-worktree))
+                 (magit-find-file-noselect-1 "{orig-worktree}" file 'ask-revert))
+                ((or goto-worktree
+                     (and (not (stringp rev))
+                          (or magit-diff-visit-avoid-head-blob
+                              (not goto-from))))
+                 (or (get-file-buffer file)
+                     (find-file-noselect file)))
+                (t
                  (magit-find-file-noselect (if (stringp rev) rev "HEAD")
-                                           file))))
+                                           file)))))
     (if line
         (with-current-buffer buf
           (cond ((eq rev 'staged)
@@ -2249,6 +2258,7 @@ section or a child thereof."
     (unless (equal orig file)
       (oset section source orig))
     (oset section header header)
+    (oset section status status)
     (when modes
       (magit-insert-section (hunk)
         (insert modes)
@@ -2748,6 +2758,58 @@ It the SECTION has a different type, then do nothing."
 
 (add-hook 'magit-section-goto-successor-hook #'magit-hunk-goto-successor)
 
+(defvar magit-unsaved-section-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [remap magit-delete-thing] 'magit-discard)
+    (define-key map [remap magit-cherry-apply] 'magit-apply)
+    map)
+  "Keymap for the `unsaved' section.")
+
+(magit-define-section-jumper magit-jump-to-unsaved "Unsaved changes" unsaved)
+
+(defun magit--insert-unsaved-diff (buffer)
+  "Insert diff for unsaved changes in BUFFER."
+  (let* ((file-name     (buffer-file-name buffer))
+         (relative-name (magit-file-relative-name file-name))
+         (diff-path     (if (file-exists-p file-name)
+                            relative-name
+                          "/dev/null"))
+         (args          (-flatten (list "diff" magit-buffer-diff-args
+                                        "--no-index" "--no-prefix" "--"
+                                        diff-path "-")))
+         (beg           (point)))
+    (apply #'magit--git-insert-with-input buffer args)
+    (when (< beg (point))
+      ;; Patch in the buffer's file name instead of "-".
+      (save-excursion
+        (goto-char beg)
+        (re-search-forward "^\\+\\+\\+ -$")
+        (delete-char -1)
+        (insert relative-name)))))
+
+(defun magit-insert-unsaved-changes ()
+  "Insert section showing unsaved changes in buffers."
+  (magit-insert-section (unsaved)
+    (magit-insert-heading "Unsaved changes:")
+    ;; Wash the output of multiple git invocations at once.
+    (magit--git-wash-fun
+     #'magit-diff-wash-diffs
+     (lambda ()
+       (let* ((topdir (magit-toplevel))
+              (remote (file-remote-p topdir)))
+         (dolist (buffer (buffer-list))
+           (when (with-current-buffer buffer
+                   (and
+                    (buffer-modified-p)
+                    buffer-file-name
+                    ;; As per magit-save-repository-buffers.
+                    (equal (file-remote-p buffer-file-name)
+                           remote)
+                    (string-prefix-p topdir (file-truename buffer-file-name))
+                    (equal (magit-toplevel) topdir)))
+             (magit--insert-unsaved-diff buffer)))))
+     "diff" "-")))
+
 (defvar magit-unstaged-section-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap magit-visit-thing]  'magit-diff-unstaged)
@@ -2795,12 +2857,12 @@ It the SECTION has a different type, then do nothing."
   "Return the diff type of SECTION.
 
 The returned type is one of the symbols `staged', `unstaged',
-`committed', or `undefined'.  This type serves a similar purpose
-as the general type common to all sections (which is stored in
-the `type' slot of the corresponding `magit-section' struct) but
-takes additional information into account.  When the SECTION
-isn't related to diffs and the buffer containing it also isn't
-a diff-only buffer, then return nil.
+`unsaved', `committed', or `undefined'.  This type serves a
+similar purpose as the general type common to all sections (which
+is stored in the `type' slot of the corresponding `magit-section'
+struct) but takes additional information into account.  When the
+SECTION isn't related to diffs and the buffer containing it also
+isn't a diff-only buffer, then return nil.
 
 Currently the type can also be one of `tracked' and `untracked'
 but these values are not handled explicitly everywhere they
@@ -2832,7 +2894,7 @@ Do not confuse this with `magit-diff-scope' (which see)."
                    (t 'committed))))
           ((derived-mode-p 'magit-status-mode)
            (let ((stype (oref it type)))
-             (if (memq stype '(staged unstaged tracked untracked))
+             (if (memq stype '(staged unstaged unsaved tracked untracked))
                  stype
                (pcase stype
                  ((or `file `module)
@@ -2894,7 +2956,7 @@ actually a `diff' but a `diffstat' section."
         (`(file  ,_  ,_  ,_) 'file)
         (`(module   t   t nil) 'files)
         (`(module  ,_  ,_  ,_) 'file)
-        (`(,(or `staged `unstaged `untracked)
+        (`(,(or `staged `unstaged `unsaved `untracked)
            nil ,_ ,_) 'list)))))
 
 (defun magit-diff-use-hunk-region-p ()
