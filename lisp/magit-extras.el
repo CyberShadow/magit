@@ -5,6 +5,11 @@
 ;; You should have received a copy of the AUTHORS.md file which
 ;; lists all contributors.  If not, see http://magit.vc/authors.
 
+;; Author: Jonas Bernoulli <jonas@bernoul.li>
+;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+
+;; SPDX-License-Identifier: GPL-3.0-or-later
+
 ;; Magit is free software; you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 3, or (at your option)
@@ -141,12 +146,23 @@ like pretty much every other keymap:
   (interactive)
   (magit-status-setup-buffer (project-root (project-current t))))
 
+(defvar magit-bind-magit-project-status t
+  "Whether to bind \"m\" to `magit-project-status' in `project-prefix-map'.
+If so, then an entry is added to `project-switch-commands' as
+well.  If you want to use another key, then you must set this
+to nil before loading Magit to prevent \"m\" from being bound.")
+
 (with-eval-after-load 'project
   ;; Only more recent versions of project.el have `project-prefix-map' and
   ;; `project-switch-commands', though project.el is available in Emacs 25.
-  (when (boundp 'project-prefix-map)
+  (when (and magit-bind-magit-project-status
+             (boundp 'project-prefix-map)
+             ;; Only modify if it hasn't already been modified.
+             (equal project-switch-commands
+                    (eval (car (get 'project-switch-commands 'standard-value))
+                          t)))
     (define-key project-prefix-map "m" #'magit-project-status)
-    (add-to-list 'project-switch-commands '(magit-project-status "Magit"))))
+    (add-to-list 'project-switch-commands '(magit-project-status "Magit") t)))
 
 ;;;###autoload
 (defun magit-dired-jump (&optional other-window)

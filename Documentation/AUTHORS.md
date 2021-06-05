@@ -65,6 +65,7 @@ Contributors
 - Andrei Chițu <andrei.chitu1@gmail.com>
 - Andrew Eggenberger <andrew.eggenberger@gmail.com>
 - Andrew Kirkpatrick <andrew.kirkpatrick@adelaide.edu.au>
+- Andrew Psaltis <apsaltis@vmware.com>
 - Andrew Schwartzmeyer <andrew@schwartzmeyer.com>
 - Andrey Smirnov <andrew.smirnov@gmail.com>
 - Andriy Kmit' <dev@madand.net>
@@ -72,6 +73,7 @@ Contributors
 - Aria Edmonds <aria@ar1as.space>
 - Arialdo Martini <arialdomartini@gmail.com>
 - Arnau Roig Ninerola <arnau.ninerola@outlook.com>
+- Ashlynn Anderson <pea@pea.sh>
 - Barak A. Pearlmutter <barak+git@pearlmutter.net>
 - Bar Magal <bmagamb@gmail.com>
 - Bart Bakker <bart@thesoftwarecraft.com>
@@ -108,6 +110,7 @@ Contributors
 - Dan Erikson <derikson3@gmail.com>
 - Daniel Brockman <daniel@gointeractive.se>
 - Daniel Farina <drfarina@acm.org>
+- Daniel Fleischer <danflscr@gmail.com>
 - Daniel Gröber <daniel@dps.uibk.ac.at>
 - Daniel Hackney <dan@haxney.org>
 - Daniel Kraus <daniel@kraus.my>
@@ -158,6 +161,8 @@ Contributors
 - Hussein Ait-Lahcen <hussein.ait-lahcen@fretlink.com>
 - Ian Eure <ian.eure@gmail.com>
 - Ian Milligan <ianmllgn@gmail.com>
+- Ilya Grigoriev <ilyagr@users.noreply.github.com>
+- Ingmar Sittl <ingmar.sittl@elektrobit.com>
 - Ingo Lohmar <i.lohmar@gmail.com>
 - Ioan-Adrian Ratiu <adi@adirat.com>
 - Ivan Brennan <ivan.brennan@gmail.com>
@@ -228,6 +233,8 @@ Contributors
 - Mark Hepburn <Mark.Hepburn@csiro.au>
 - Mark Karpov <markkarpov@opmbx.org>
 - Mark Oteiza <mvoteiza@udel.edu>
+- Martin Joerg <martin.joerg@gmail.com>
+- Martin Polden <mpolden@yahoo-inc.com>
 - Matthew Fluet <matthew.fluet@gmail.com>
 - Matthew Kraai <kraai@ftbfs.org>
 - Matthieu Hauglustaine <matt.hauglustaine@gmail.com>
@@ -256,10 +263,12 @@ Contributors
 - Nikolay Martynov <mar.kolya@gmail.com>
 - Noam Postavsky <npostavs@users.sourceforge.net>
 - N. Troy de Freitas <me@ntdef.com>
+- Ola x Nilsson <olani@axis.com>
 - Ole Arndt <oliver.arndt@cegedim.com>
 - Oleh Krehel <ohwoeowho@gmail.com>
 - Orivej Desh <orivej@gmx.fr>
 - Óscar Fuentes <ofv@wanadoo.es>
+- Pancho Horrillo <pancho@pancho.name>
 - Paul Stadig <paul@stadig.name>
 - Pavel Holejsovsky <pavel.holejsovsky@upek.com>
 - Pekka Pessi <nospam@pessi.fi>
@@ -277,6 +286,7 @@ Contributors
 - Pierre Neidhardt <ambrevar@gmail.com>
 - Pieter Praet <pieter@praet.org>
 - Prathamesh Sonpatki <csonpatki@gmail.com>
+- Pritam Baral <pritam@pritambaral.com>
 - rabio <rabiodev@o2.pl>
 - Radon Rosborough <radon.neon@gmail.com>
 - Rafael Laboissiere <rafael@laboissiere.net>
@@ -296,6 +306,7 @@ Contributors
 - Rüdiger Sonderfeld <ruediger@c-plusplus.net>
 - Russell Black <black.russell@gmail.com>
 - Ryan C. Thompson <rct@thompsonclan.org>
+- Sam Cedarbaum <scedarbaum@gmail.com>
 - Samuel Bronson <naesten@gmail.com>
 - Samuel W. Flint <swflint@flintfam.org>
 - Sanjoy Das <sanjoy@playingwithpointers.com>

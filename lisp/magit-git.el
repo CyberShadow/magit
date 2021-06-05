@@ -8,6 +8,8 @@
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 
+;; SPDX-License-Identifier: GPL-3.0-or-later
+
 ;; Magit is free software; you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 3, or (at your option)
@@ -758,13 +760,27 @@ returning the truename."
          (magit--not-inside-repository-error)))))
 
 (define-error 'magit-outside-git-repo "Not inside Git repository")
+(define-error 'magit-corrupt-git-config "Corrupt Git configuration")
 (define-error 'magit-git-executable-not-found
   "Git executable cannot be found (see https://magit.vc/goto/e6a78ed2)")
 
+(defun magit--assert-usable-git ()
+  (if (not (executable-find magit-git-executable))
+      (signal 'magit-git-executable-not-found magit-git-executable)
+    (let ((magit-git-debug
+           (lambda (err)
+             (signal 'magit-corrupt-git-config
+                     (format "%s: %s" default-directory err)))))
+      ;; This should always succeed unless there's a corrupt config
+      ;; (or at least a similarly severe failing state).  Note that
+      ;; git-config's --default is avoided because it's not available
+      ;; until Git 2.18.
+      (magit-git-string "config" "--get-color" "" "reset"))
+    nil))
+
 (defun magit--not-inside-repository-error ()
-  (if (executable-find magit-git-executable)
-      (signal 'magit-outside-git-repo default-directory)
-    (signal 'magit-git-executable-not-found magit-git-executable)))
+  (magit--assert-usable-git)
+  (signal 'magit-outside-git-repo default-directory))
 
 (defun magit-inside-gitdir-p (&optional noerror)
   "Return t if `default-directory' is below the repository directory.
@@ -1451,7 +1467,7 @@ according to the branch type."
       (when-let ((remotes (magit-list-remotes))
                  (remote (if (= (length remotes) 1)
                              (car remotes)
-                           (car (member "origin" remotes)))))
+                           (magit-primary-remote))))
         (magit--propertize-face remote 'magit-branch-remote))))
 
 (defun magit-get-push-remote (&optional branch)
@@ -1486,9 +1502,34 @@ according to the branch type."
   (or (magit-get-remote branch)
       (when-let ((main (magit-main-branch)))
         (magit-get-remote main))
-      (let ((remotes (magit-list-remotes)))
-        (or (car (member "origin" remotes))
-            (car remotes)))))
+      (magit-primary-remote)
+      (car (magit-list-remotes))))
+
+(defvar magit-primary-remote-names
+  '("upstream" "origin"))
+
+(defun magit-primary-remote ()
+  "Return the primary remote.
+
+The primary remote is the remote that tracks the repository that
+other repositories are forked from.  It often is called \"origin\"
+but because many people name their own fork \"origin\", using that
+term would be ambiguous.  Likewise we avoid the term \"upstream\"
+because a branch's @{upstream} branch may be a local branch or a
+branch from a remote other than the primary remote.
+
+If a remote exists whose name matches `magit.primaryRemote', then
+that is considered the primary remote.  If no remote by that name
+exists, then remotes in `magit-primary-remote-names' are tried in
+order and the first remote from that list that actually exists in
+the current repository is considered its primary remote."
+  (let ((remotes (magit-list-remotes)))
+    (seq-find (lambda (name)
+                (member name remotes))
+              (delete-dups
+               (delq nil
+                     (cons (magit-get "magit.primaryRemote")
+                           magit-primary-remote-names))))))
 
 (defun magit-branch-merged-p (branch &optional target)
   "Return non-nil if BRANCH is merged into its upstream and TARGET.
@@ -1800,10 +1841,10 @@ PATH has to be relative to the super-repository."
 (defun magit-main-branch ()
   "Return the main branch.
 
-If a branch exists whose name that matches `init.defaultBranch'
-then that is considered the main branch.  If no branch by that
-name exists, then the branch names in `magit-main-branch-names'
-are tried in order.  The first matching branch that actually
+If a branch exists whose name matches `init.defaultBranch', then
+that is considered the main branch.  If no branch by that name
+exists, then the branch names in `magit-main-branch-names' are
+tried in order.  The first branch from that list that actually
 exists in the current repository is considered its main branch."
   (let ((branches (magit-list-local-branch-names)))
     (seq-find (lambda (name)

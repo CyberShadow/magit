@@ -8,6 +8,8 @@
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 
+;; SPDX-License-Identifier: GPL-3.0-or-later
+
 ;; Magit is free software; you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 3, or (at your option)
@@ -2173,7 +2175,7 @@ section or a child thereof."
    ((looking-at magit-diff-conflict-headline-re)
     (let ((long-status (match-string 0))
           (status "BUG")
-          file orig base modes)
+          file orig base)
       (if (equal long-status "merged")
           (progn (setq status long-status)
                  (setq long-status nil))
@@ -2198,7 +2200,7 @@ section or a child thereof."
       (when orig (setq orig (magit-decode-git-path orig)))
       (when file (setq file (magit-decode-git-path file)))
       (magit-diff-insert-file-section
-       (or file base) orig status modes nil long-status)))
+       (or file base) orig status nil nil long-status)))
    ((looking-at
      "^diff --\\(?:\\(git\\) \\(?:\\(.+?\\) \\2\\)?\\|\\(cc\\|combined\\) \\(.+\\)\\)")
     (let ((status (cond ((equal (match-string 1) "git")        "modified")
@@ -2458,8 +2460,8 @@ or a ref which is not a branch, then it inserts nothing."
               (re-search-forward "-----END PGP SIGNATURE-----")
               (delete-region beg (point)))
             (insert ?\n)
-            (process-file magit-git-executable nil t nil
-                          "verify-tag" magit-buffer-revision))
+            (magit-process-file magit-git-executable nil t nil
+                                "verify-tag" magit-buffer-revision))
         (goto-char (point-max)))
       (insert ?\n))))
 

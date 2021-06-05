@@ -8,6 +8,8 @@
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 
+;; SPDX-License-Identifier: GPL-3.0-or-later
+
 ;; Magit is free software; you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 3, or (at your option)
@@ -266,8 +268,9 @@ prefix arguments:
   (interactive
    (let ((magit--refresh-cache (list (cons 0 0))))
      (list (and (or current-prefix-arg (not (magit-toplevel)))
-                (magit-read-repository
-                 (>= (prefix-numeric-value current-prefix-arg) 16)))
+                (progn (magit--assert-usable-git)
+                       (magit-read-repository
+                        (>= (prefix-numeric-value current-prefix-arg) 16))))
            magit--refresh-cache)))
   (let ((magit--refresh-cache (or cache (list (cons 0 0)))))
     (if directory

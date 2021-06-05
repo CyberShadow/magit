@@ -8,6 +8,8 @@
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 
+;; SPDX-License-Identifier: GPL-3.0-or-later
+
 ;; Magit is free software; you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 3, or (at your option)
@@ -93,7 +95,7 @@
   :prompt "Set global notes.displayRef")
 
 (transient-define-argument magit-notes:--ref ()
-  :description "Merge strategy"
+  :description "Manipulate ref"
   :class 'transient-option
   :key "-r"
   :argument "--ref="
